@@ -1,0 +1,143 @@
+  Google Workspace rules ID: 64600 - 65499
+-->
+
+<var name="gworkspace_description">Google $(gworkspace.application) : $(gworkspace.eventname)</var>
+
+<group name="gworkspace,">
+
+  <rule id="64600" level="3">
+    <decoded_as>json</decoded_as>
+    <field name="gworkspace.application">\.+</field>
+    <description>$gworkspace_description</description>
+  </rule>
+
+  <rule id="64601" level="14">
+    <if_sid>64600</if_sid>
+    <field name="gworkspace.application">^wazuh extraction</field>
+    <field name="gworkspace.eventname">^extraction error</field>
+    <description>$gworkspace_description</description>
+  </rule>
+
+  <rule id="64602" level="12">
+    <if_sid>64600</if_sid>
+    <field name="gworkspace.application">^wazuh extraction</field>
+    <field name="gworkspace.eventname">^extraction warning</field>
+    <description>$gworkspace_description</description>
+  </rule>
+
+  <rule id="64610" level="5">
+    <if_sid>64600</if_sid>  
+    <field name="gworkspace.application">^saml|^token|^login</field>
+    <description>$gworkspace_description</description>
+  </rule>
+
+  <rule id="64612" level="6">
+    <if_sid>64600</if_sid>  
+    <field name="gworkspace.application">^admin|^groups|^context aware access|^access transparency|^gcp</field>
+    <description>$gworkspace_description</description>
+  </rule>
+
+  <rule id="64614" level="7">
+    <if_sid>64600</if_sid>
+    <field name="gworkspace.application">^rules|^user accounts</field>
+    <description>$gworkspace_description</description>
+  </rule>
+
+  <rule id="64616" level="10">
+    <if_sid>64600</if_sid>
+    <field name="gworkspace.application">^admin</field>
+    <field name="gworkspace.eventtype">^security settings</field>
+    <description>Google Workspace : Change of global $(gworkspace.eventtype) "$(gworkspace.eventname)"</description>
+  </rule>
+
+  <rule id="64618" level="9">
+    <if_sid>64600</if_sid>
+    <field name="gworkspace.application">^admin</field>
+    <field name="gworkspace.eventname">^reject from quarantine|^drop from quarantine</field>
+    <description>$gworkspace_description</description>
+  </rule>
+
+  <rule id="64620" level="9">
+    <if_sid>64600</if_sid>
+    <field name="gworkspace.application">^admin</field>
+    <field name="gworkspace.eventname">^email log search</field>
+    <description>$gworkspace_description</description>
+  </rule>
+  
+  <rule id="64622" level="10">
+    <if_sid>64600</if_sid>
+    <field name="gworkspace.application">^vault</field>
+    <description>Google $(gworkspace.application) : mass data recovery, DLP warning for user $(user)</description>
+    <group>DLP</group>
+  </rule>
+
+  <rule id="64624" level="12">
+    <if_sid>64600</if_sid>
+    <field name="gworkspace.application">^admin</field>
+    <field name="gworkspace.eventtype">^delegated admin</field>
+    <description>Google $(gworkspace.application) : sensitive "$(gworkspace.eventname)" activity by user $(user)</description>
+  </rule>
+
+  <rule id="64626" level="12">
+    <if_sid>64600</if_sid>
+    <field name="gworkspace.application">^access transparency</field>
+    <description>Google Workspace : access to Workspace resources by Google</description>
+  </rule>
+  
+  <rule id="64650" level="10" frequency="100" timeframe="300" ignore="600">
+    <if_matched_sid>64600</if_matched_sid>
+    <field name="gworkspace.application">^drive</field>
+    <field name="gworkspace.eventname">^download</field>
+    <same_field>user</same_field>
+    <same_field>gworkspace.application</same_field>
+    <same_field>gworkspace.eventname</same_field>
+    <description>Google $(gworkspace.application) : intensive file download activity, DLP warning for user $(user)</description>
+    <group>DLP</group>
+  </rule>
+
+  <rule id="64651" level="12" frequency="100" timeframe="300" ignore="600">
+    <if_matched_sid>64600</if_matched_sid>
+    <field name="gworkspace.application">^drive</field>
+    <field name="gworkspace.eventname">^download</field>
+    <field name="gworkspace.parameters.actor_is_collaborator_account">^true</field>
+    <same_field>user</same_field>
+    <same_field>gworkspace.application</same_field>
+    <same_field>gworkspace.eventname</same_field>
+    <description>Google $(gworkspace.application) : intensive file download activity, DLP warning for EXTERNAL user $(user)</description>
+    <group>DLP</group>
+  </rule>
+
+<!--
+  do not raise alerts for calendars, and exempt drive since it is managed by a specific rule (see below)
+-->
+
+  <rule id="64652" level="10" frequency="100" timeframe="60" ignore="600">
+    <if_matched_sid>64600</if_matched_sid>
+    <field name="gworkspace.application" negate="yes">^calendar|^drive</field>
+    <field name="gworkspace.parameters.primary_event">^true</field>
+    <same_field>user</same_field>
+    <same_field>gworkspace.application</same_field>
+    <same_field>gworkspace.eventname</same_field>
+    <description>Google $(gworkspace.application) : intensive "$(gworkspace.eventname)" activity by user $(user)</description>
+  </rule>
+
+<!--
+  special rule for drive events, where we only track intensive activity for primary events
+-->
+  <rule id="64653" level="10" frequency="100" timeframe="60" ignore="600">
+    <if_matched_sid>64600</if_matched_sid>
+    <field name="gworkspace.application">^drive</field>
+    <field name="gworkspace.parameters.primary_event">^true</field>
+    <same_field>user</same_field>
+    <same_field>gworkspace.application</same_field>
+    <same_field>gworkspace.eventname</same_field>
+    <description>Google $(gworkspace.application) : intensive "$(gworkspace.eventname)" activity by user $(user)</description>
+  </rule>
+
+  <rule id="64654" level="12" frequency="30" timeframe="300" ignore="600">
+    <if_matched_sid>64600</if_matched_sid>
+    <field name="gworkspace.eventname">^login failure</field>
+    <description>Google Workspace : Many failed logins, possible credential stuffing attack</description>
+  </rule>
+
+</group>
