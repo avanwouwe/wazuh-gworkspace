@@ -1,2 +1,17 @@
 # wazuh-gworkspace
-Wazuh wodle that integrates Google Workspace admin events (just like the O365 integration)
+Wazuh wodle that integrates all Google Workspace audit events (including Drive, Groups, Calendar, SAML and Admin).
+
+![screenshot of Workspace events in Wazuh](/doc/gworkspace%20screenshot.png)
+
+Advantages with respect to the standard Google GCP integration [provided by Wazuh](https://documentation.wazuh.com/current/cloud-security/gcp/index.html):
+* does not require Pub / Sub configuration
+* integrates **all** auditable Google Workspace events / product types (i.e. Drive, Groups, Calendar, Admin, etc)
+* includes rules with sensible levels (based on the equivalent actions in the O365 integration)
+
+Disadvantages:
+* only covers Google Workspace events, not GCP
+
+Getting started:
+* [create service account & oAuth client](/doc/install-step-1.md)
+* [install wodle](/doc/install-step-2.md)
+* [install rules](/doc/install-step-3.md)
