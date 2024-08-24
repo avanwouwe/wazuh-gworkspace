@@ -12,6 +12,6 @@ Disadvantages / limitations:
 * only covers Google Workspace events, not GCP
 * the `@timestamp` of events is the moment of injection, not the moment of the event, which is stored in `data.timestamp`
 
-Getting started:
+Installation:
 * [create service account & OAuth client](/doc/install-step-1.md)
 * [install wodle](/doc/install-step-2.md)
