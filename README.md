@@ -15,4 +15,3 @@ Disadvantages / limitations:
 Getting started:
 * [create service account & oAuth client](/doc/install-step-1.md)
 * [install wodle](/doc/install-step-2.md)
-* [install rules](/doc/install-step-3.md)
