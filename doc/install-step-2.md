@@ -62,12 +62,12 @@ docker exec -ti <container id of manager container> /bin/bash
 cd /var/ossec/wodles/gworkspace/
 ```
 
-Copy the authentication file you have created in the previous step, by pasting the contents of the file after this command, followed by cntrl-D:
+Copy the authentication file you have created previously, by pasting the contents of the file after this command, followed by cntrl-D:
 ```
 cat > client_key.json
 ```
 
-Then create the refresh token:
+Then create the refresh token by running on the manager node:
 ```
 /var/ossec/framework/python/bin/python3 -m pip install google-auth-oauthlib
 /var/ossec/framework/python/bin/python3 create_token.py 
