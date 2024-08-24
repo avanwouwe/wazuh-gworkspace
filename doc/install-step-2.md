@@ -2,11 +2,11 @@
 > this how-to assumes a multi-node [Wazuh docker deployment](https://github.com/wazuh/wazuh-docker) and may require adaptation for other deployment methods
 
 # add required Python libraries
-The wodle requires the `google-api-python-client` Python library, which is not distributed with the standard Wazuh distribution. To ensure that this library is in the Docker image, first create a custom Dockerfile for the manager node. This Dockerfile will build on the standard image provided by Wazuh.
+The wodle requires the `google-api-python-client` Python library, which is not distributed with the standard Wazuh distribution. To ensure that this library is in the Docker image, first create a custom Dockerfile for the master node. This Dockerfile will build on the standard image provided by Wazuh.
 
 ```
 cd  ~/wazuh-docker/multi-node/config/wazuh_cluster/
-cat > manager.Dockerfile << EOF
+cat > master.Dockerfile << EOF
 FROM wazuh/wazuh-manager:4.8.1
 RUN /var/ossec/framework/python/bin/python3 -m pip install google-api-python-client
 EOF
@@ -55,10 +55,10 @@ docker compose down
 docker compose up -d --build
 ```
 
-And then create a shell session on the manager node:
+And then create a shell session on the master node:
 ```
 docker ps
-docker exec -ti <container id of manager container> /bin/bash
+docker exec -ti <container id of master container> /bin/bash
 cd /var/ossec/wodles/gworkspace/
 ```
 
@@ -67,7 +67,7 @@ Copy the authentication file you have created previously, by pasting the content
 cat > client_key.json
 ```
 
-Then create the refresh token by running on the manager node:
+Then create the refresh token by running on the master node:
 ```
 /var/ossec/framework/python/bin/python3 -m pip install google-auth-oauthlib
 /var/ossec/framework/python/bin/python3 create_token.py 
