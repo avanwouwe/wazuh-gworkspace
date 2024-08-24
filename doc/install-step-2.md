@@ -73,7 +73,7 @@ Then create the refresh token by running on the master node:
 /var/ossec/framework/python/bin/python3 create_token.py 
 ```
 
-Open the URL in an incognito/private window and authenicate using the username and password created in the previous step. Then paste de returned code into the window. This will creatre the refresh token that will be used by the wodle to authenticate.
+Open the link in an incognito/private window and authenicate using the username and password of the service account created in the previous step. Then paste de returned code into the window. This will creatre the refresh token that will be used by the wodle to authenticate.
 
 With the refresh token created you no longer need the authentication key, and provided you have saved it somewhere in your password manager you can remove the file. 
 ```
@@ -81,7 +81,7 @@ rm client_key.json
 chmod o-r token.json
 ```
 
-If the refresh token is ever compromised, you can invalidate the session in the Google "manage my account" screen, and recreate a new session with a new refresh token, using the same procedure. For further security, you can clear the list of allowed return URLs in the configuration of the list of authorized redirect URIs in the OAuth client ID.
+If the refresh token is ever compromised, you can login as the service account, invalidate the session in the Google "manage my account" screen, and recreate a new session with a new refresh token using the above procedure. For further security, you can clear the list of allowed return URIs in the configuration of the list of authorized redirect URIs in the OAuth client ID.
 
 You can test that the wodle works by running it and checking that it outputs log events in JSON format. The --unread parameter ensures that the historical messages will be left unread for the next run. 
 ```
