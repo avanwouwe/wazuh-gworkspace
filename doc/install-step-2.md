@@ -62,7 +62,7 @@ docker exec -ti <container id of master container> /bin/bash
 cd /var/ossec/wodles/gworkspace/
 ```
 
-Copy the authentication file you have created previously, by pasting the contents of the file after this command, followed by <enter> and <cntrl-D>:
+Copy the file with the client secret you have created previously, by pasting the contents of the file after this command, followed by <enter> and <cntrl-D>:
 ```
 cat > client_key.json
 ```
