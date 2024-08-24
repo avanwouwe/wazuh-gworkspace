@@ -1,5 +1,5 @@
 # create a service account
-First you will create a Google Workspace account that will serve as a sevice account used by Wazuh to connect. We will make sure to not give this account a Google Workspace licence, both for financial and secutity reasons.
+First you will create a Google Workspace account that will serve as a sevice account used by Wazuh to connect. We will make sure to not give this account a Google Workspace licence, both for financial and security reasons.
 
 In the [Organizational units](https://admin.google.com/ac/orgunits) screen create an OrgUnit called `Service accounts`.
 
