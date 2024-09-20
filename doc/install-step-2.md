@@ -1,5 +1,5 @@
 > [!NOTE]  
-> this how-to assumes a multi-node [Wazuh docker deployment](https://github.com/wazuh/wazuh-docker) and may require adaptation for other deployment methods
+> this wodle works on any Wazuh installation but this how-to assumes a multi-node [Wazuh docker deployment](https://github.com/wazuh/wazuh-docker) and may require adaptation for other deployment methods
 
 # add required Python libraries
 The wodle requires the `google-api-python-client` Python library, which is not distributed with the standard Wazuh distribution. To ensure that this library is in the Docker image, first create a custom Dockerfile for the master node. This Dockerfile will build on the standard image provided by Wazuh.
