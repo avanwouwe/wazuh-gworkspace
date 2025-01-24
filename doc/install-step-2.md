@@ -73,7 +73,7 @@ Then create the refresh token by running on the master node:
 /var/ossec/framework/python/bin/python3 create_token.py 
 ```
 
-Open the link in an incognito/private window and authenicate using the username and password of the service account created in the previous step. Then paste de returned code into the window. This will creatre the refresh token that will be used by the wodle to authenticate.
+Open the link in an incognito/private window and authenicate using the username and password of the service account created in the previous step. Once you allow the Wazuh client to access to your data, it will redirect to the http://localhost URL, and fail. Just copy the URL into the shell. The script will parse the URL to obtain the code returned and then create the refresh token that will be used by the wodle to authenticate.
 
 With the refresh token created you no longer need the authentication key, and provided you have saved it somewhere in your password manager you can remove the file. 
 ```
