@@ -1,3 +1,4 @@
+from urllib.parse import urlparse, parse_qs
 from google_auth_oauthlib.flow import InstalledAppFlow
 
 # Scopes required for the application
@@ -20,8 +21,12 @@ def main():
     print("Please open the following URL in a new incognito/private window:")
     print(auth_url)
 
-    # After the user has authorized the app, they will be given a code to paste here
-    code = input('Enter the authorization code: ')
+    # Prompt the user to paste the full redirect URL
+    full_redirect_url = input('Enter the full redirect URL: ')
+
+    parsed_url = urlparse(full_redirect_url)
+    query_params = parse_qs(parsed_url.query)
+    code = query_params.get('code', [''])[0]
 
     # Exchange the code for a token
     flow.fetch_token(code=code)
