@@ -11,6 +11,8 @@ Advantages with respect to the standard Google GCP integration [provided by Wazu
 Disadvantages / limitations:
 * only covers Google Workspace events, not GCP
 * the `@timestamp` of events is the moment of injection, not the moment of the event, which is stored in `data.timestamp`
+* batch-driven instead of event-driven, resulting in a delay between the event and it's recovery
+* tested on an organisation with 100 users (if you have successfully deployed on a bigger organisation, please let me know)
 
 Installation:
 * [create service account & OAuth client](/doc/install-step-1.md)
