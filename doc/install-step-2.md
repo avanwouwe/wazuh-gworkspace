@@ -85,7 +85,7 @@ If the refresh token is ever compromised, you can login as the service account, 
 
 You can test that the wodle works by running it and checking that it outputs log events in JSON format. The --unread parameter ensures that the historical messages will be left unread for the next run. 
 ```
-./gworkspace -a DRIVE --unread
+./gworkspace -a admin --unread
 ```
 
 You can then close the shell session.
