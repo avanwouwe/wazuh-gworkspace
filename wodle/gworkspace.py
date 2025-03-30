@@ -63,15 +63,26 @@ def get_service():
 	with open(TOKEN_FILE_PATH, 'r') as file:
 		creds_data = json.load(file)
 
-	# Create credentials using the data loaded from the file
-	credentials = Credentials(
-		None,  # No access token, we're going to refresh it
-		refresh_token = creds_data['refresh_token'],
-		token_uri = 'https://oauth2.googleapis.com/token',
-		client_id = creds_data['client_id'],
-		client_secret = creds_data['client_secret'],
-		scopes = SCOPES
-	)
+	# universe_domain was added in v2.22 https://github.com/googleapis/google-auth-library-python/commit/8b8fce6a1e1ca6e0199cb5f15a90af477bf1c853
+	# but only got a default parameter in v2.28 https://github.com/googleapis/google-auth-library-python/commit/fa8b7b24ec32712aafff98c2d6c6a6cc5fd20ada
+	# so we have to try both options
+	creds_params = {
+		'token': None,  # No access token, we're going to refresh it
+		'refresh_token': creds_data['refresh_token'],
+		'token_uri': 'https://oauth2.googleapis.com/token',
+		'client_id': creds_data['client_id'],
+		'client_secret': creds_data['client_secret'],
+		'scopes': SCOPES,
+		'universe_domain': 'googleapis.com'  # non-optional for some versions
+	}
+
+	try:
+		# Try creating credentials with all parameters
+		credentials = Credentials(**creds_params)
+	except TypeError:
+		# If universe_domain isn't supported, remove it and try again
+		del creds_params['universe_domain']
+		credentials = Credentials(**creds_params)
 
 	# Refresh the access token
 	credentials.refresh(Request())
