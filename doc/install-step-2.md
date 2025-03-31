@@ -1,6 +1,35 @@
 > [!NOTE]  
 > this wodle works on any Wazuh installation but this how-to assumes a [Wazuh docker deployment](https://github.com/wazuh/wazuh-docker) and may require (slight) adaptation for other deployment methods
 
+# add required Python libraries
+The wodle requires the `google-api-python-client` Python library, which is not distributed with the standard Wazuh distribution. To ensure that this library is in the Docker image, first create a custom Dockerfile for the master node. This Dockerfile will build on the standard image provided by Wazuh.
+
+```
+cd  ~/wazuh-docker/multi-node/config/wazuh_cluster/
+cat > master.Dockerfile << EOF
+FROM wazuh/wazuh-manager:4.10.0
+RUN /var/ossec/framework/python/bin/python3 -m pip install google-api-python-client
+EOF
+```
+
+Then change the `docker-compose.yml` to build this custom container instead of using the standard one. Replace this:
+```
+services:
+  wazuh.master:
+    image: wazuh/wazuh-manager:4.10.0
+```
+
+... with this:
+```
+services:
+  wazuh.master:
+    build:
+        dockerfile: ./config/wazuh_cluster/master.Dockerfile
+```
+
+> [!NOTE]  
+> don't forget to update the version numbers of the docker image when you install and whenever you upgrade your installation.
+
 # install wodle
 Clone this repo in the directory where the Wazuh docker repo is cloned
 ```
@@ -18,7 +47,7 @@ In the `docker-compose.yml` mount the `/wodle` directory of this repo so that it
       - ../../wazuh-gworkspace/wodle:/var/ossec/wodles/gworkspace
 ```
 
-Now you can rebuild the image and recreate the containers to ensure that the volume is mounted:
+Now you can rebuild the image and recreate the containers to ensure that the python library is installed and the volume is mounted:
 ```
 cd  ~/wazuh-docker/multi-node/
 docker compose down
