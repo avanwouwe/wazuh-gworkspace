@@ -1,20 +1,25 @@
 
-from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request
+from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import os, sys, json, argparse, tempfile, traceback, random, time
 from datetime import datetime, timedelta
 
+
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
-TOKEN_FILE_PATH = os.path.join(SCRIPT_PATH, 'token.json')
+KEY_FILE_PATH = os.path.join(SCRIPT_PATH, 'service_account_key.json')
 STATE_FILE_PATH = os.path.join(SCRIPT_PATH, 'state.json')
+CONFIG_FILE_PATH = os.path.join(SCRIPT_PATH, 'config.json')
 STR_LAST_ACTIVITY_TIME = 'lastActivityTime'
 STR_GWORKSPACE = 'gworkspace'
 
 RESULTS_PER_REQUEST = 800
 MAX_API_RETRIES = 5
-GOOGLE_APPLICATIONS = 'access_transparency,admin,calendar,chat,drive,gcp,gplus,groups,groups_enterprise,jamboard,login,meet,mobile,rules,saml,token,user_accounts,context_aware_access,chrome,data_studio,keep'
-SCOPES = ['https://www.googleapis.com/auth/admin.reports.audit.readonly']
+MAX_ALERT_LENGTH = 5000
+GOOGLE_APPLICATIONS = 'access_transparency,admin,calendar,chat,drive,gcp,gplus,groups,groups_enterprise,jamboard,login,meet,mobile,rules,saml,token,user_accounts,context_aware_access,chrome,data_studio,keep,alert'
+SCOPES = [
+	'https://www.googleapis.com/auth/admin.reports.audit.readonly',
+	'https://www.googleapis.com/auth/apps.alerts'
+]
 
 parser = argparse.ArgumentParser(description="Export Google Workspace logs of various services such as drive, groups, etc.")
 parser.add_argument('--applications', '-a', dest='applications', required=True, help='comma-separated application names, see https://developers.google.com/admin-sdk/reports/reference/rest/v1/activities/list#ApplicationName, ')
@@ -23,6 +28,10 @@ parser.add_argument('--unread', '-u', dest='unread', action='store_true', help='
 args = parser.parse_args()
 
 RESULTS = tempfile.TemporaryFile(mode='w+')
+
+with open(CONFIG_FILE_PATH, 'r') as config_file:
+	CONFIG = json.load(config_file)
+
 
 def main():
 	if args.applications == "all":
@@ -40,9 +49,14 @@ def main():
 	state = load_state()
 
 	for application in scoped_applications:
-		service = get_service()
 		earliest_time = dict_path(state, application, STR_LAST_ACTIVITY_TIME) or offset_time
-		get_logs(service, application, earliest_time)
+
+		if application == 'alert':
+			service = get_service('alertcenter', 'v1beta1')
+			get_alerts(service, earliest_time)
+		else:
+			service = get_service('admin', 'reports_v1')
+			get_logs(service, application, earliest_time)
 
 	if not args.unread:
 		update_state()
@@ -52,50 +66,17 @@ def main():
 	json_msg('extraction', 'finished', 'message', "extraction finished")
 
 
-def get_service():
+def get_service(service_name, service_version):
 	"""builds the service used to query Google
 
 	Returns:
 		 Resource:   A Resource object with methods for interacting with the service.
 
 	"""
-	# Load credentials from the JSON file
-	with open(TOKEN_FILE_PATH, 'r') as file:
-		creds_data = json.load(file)
+	credentials = service_account.Credentials.from_service_account_file(KEY_FILE_PATH, scopes=SCOPES)
+	credentials = credentials.with_subject(CONFIG['service_account'])
 
-	# universe_domain was added in v2.22 https://github.com/googleapis/google-auth-library-python/commit/8b8fce6a1e1ca6e0199cb5f15a90af477bf1c853
-	# but only got a default parameter in v2.28 https://github.com/googleapis/google-auth-library-python/commit/fa8b7b24ec32712aafff98c2d6c6a6cc5fd20ada
-	# so we have to try both options
-	creds_params = {
-		'token': None,  # No access token, we're going to refresh it
-		'refresh_token': creds_data['refresh_token'],
-		'token_uri': 'https://oauth2.googleapis.com/token',
-		'client_id': creds_data['client_id'],
-		'client_secret': creds_data['client_secret'],
-		'scopes': SCOPES,
-		'universe_domain': 'googleapis.com'  # non-optional for some versions
-	}
-
-	try:
-		# Try creating credentials with all parameters
-		credentials = Credentials(**creds_params)
-	except TypeError:
-		# If universe_domain isn't supported, remove it and try again
-		del creds_params['universe_domain']
-		credentials = Credentials(**creds_params)
-
-	# Refresh the access token
-	credentials.refresh(Request())
-
-	# Build the service
-	return build('admin', 'reports_v1', credentials = credentials, num_retries = MAX_API_RETRIES)
-
-
-def get_logs(service, application, earliest_time):
-	nextToken = get_log_page(service, application, earliest_time)
-
-	while (nextToken):
-		nextToken = get_log_page(service, application, earliest_time, nextToken)
+	return build(service_name, service_version, credentials=credentials, num_retries=MAX_API_RETRIES)
 
 
 def dict_path(dictionary, *path):
@@ -112,17 +93,24 @@ def dict_path(dictionary, *path):
 	return curr_element
 
 
-def get_retry(service, params, retries):
+def get_retry(service, method_name, params, retries):
 	try:
-		return service.activities().list(**params).execute(num_retries = 0)    # don't use inbuilt retry, does not work
+		method = getattr(service, method_name)
+		return method().list(**params).execute(num_retries = 0)    # don't use inbuilt retry, does not work
 	except:
 		if (retries > 0):
 			backoff = 2 ** (MAX_API_RETRIES - retries)
 			time.sleep(backoff)
 
-			return get_retry(service, params, retries - 1)
+			return get_retry(service, method_name, params, retries - 1)
 		else:
 			raise
+
+def get_logs(service, application, earliest_time):
+	nextToken = get_log_page(service, application, earliest_time)
+
+	while (nextToken):
+		nextToken = get_log_page(service, application, earliest_time, nextToken)
 
 def get_log_page(service, application, earliest_time, nextToken = None):
 	params = {
@@ -135,7 +123,7 @@ def get_log_page(service, application, earliest_time, nextToken = None):
 	if (nextToken):
 		params['pageToken'] = nextToken
 
-	results = get_retry(service, params, MAX_API_RETRIES)
+	results = get_retry(service, 'activities', params, MAX_API_RETRIES)
 
 	for activity in results.get('items', []):
 		for event in activity.get('events', []):
@@ -177,6 +165,56 @@ def get_log_page(service, application, earliest_time, nextToken = None):
 
 			json.dump(converted_event, RESULTS, indent = None)
 			RESULTS.write("\n")
+
+	return results.get('nextPageToken')
+
+def get_alerts(service, earliest_time):
+	nextToken = get_alerts_page(service, earliest_time)
+
+	while (nextToken):
+		nextToken = get_alerts_page(service, earliest_time, nextToken)
+
+def get_alerts_page(service, earliest_time, nextToken = None):
+	params = {
+		'filter': f'startTime > "{earliest_time}"'
+	}
+
+	if (nextToken):
+		params['pageToken'] = nextToken
+
+	results = get_retry(service, 'alerts', params, MAX_API_RETRIES)
+
+	for alert in results.get('alerts', []):
+		timestamp = dict_path(alert, 'startTime')
+
+		# search API returns "greater than or equal", but those that are equal were in previous run
+		# so exclude them from the result
+		if timestamp == earliest_time:
+			continue
+
+		converted_event = { }
+		converted_event['id']			= dict_path(alert, 'alertId')
+		converted_event['timestamp']	= timestamp
+
+		email = dict_path(alert, 'data', 'email') or dict_path(alert, 'data', 'actorEmail')
+		if email:
+			converted_event['user'] = email
+
+		data = {  }
+		converted_event[STR_GWORKSPACE] = data
+		data['application']		= 'alert center'
+		data['customerId']		= dict_path(alert,'customerId')
+		data['eventtype']		= capitalize(dict_path(alert, 'source'))
+		data['eventname']		= capitalize(dict_path(alert, 'type'))
+
+		json_alert = json.dumps(dict_path(alert, 'data'))
+		if len(json_alert) > MAX_ALERT_LENGTH:
+			json_alert = json_alert[:MAX_ALERT_LENGTH] + "..."
+
+		data['parameters'] = { 'alert' : json_alert}
+
+		json.dump(converted_event, RESULTS, indent = None)
+		RESULTS.write("\n")
 
 	return results.get('nextPageToken')
 

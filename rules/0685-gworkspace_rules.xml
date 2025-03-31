@@ -141,4 +141,10 @@
     <description>Google Workspace : Many failed logins, possible credential stuffing attack</description>
   </rule>
 
+  <rule id="64700" level="10">
+    <if_matched_sid>64600</if_matched_sid>
+    <field name="gworkspace.application">^alert center</field>
+    <description>$gworkspace_description</description>
+  </rule>
+
 </group>
