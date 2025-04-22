@@ -187,11 +187,6 @@ def get_alerts_page(service, earliest_time, nextToken = None):
 	for alert in results.get('alerts', []):
 		timestamp = dict_path(alert, 'startTime')
 
-		# search API returns "greater than or equal", but those that are equal were in previous run
-		# so exclude them from the result
-		if timestamp == earliest_time:
-			continue
-
 		converted_event = { }
 		converted_event['id']			= dict_path(alert, 'alertId')
 		converted_event['timestamp']	= timestamp
@@ -202,7 +197,7 @@ def get_alerts_page(service, earliest_time, nextToken = None):
 
 		data = {  }
 		converted_event[STR_GWORKSPACE] = data
-		data['application']		= 'alert center'
+		data['application']		= 'alert'
 		data['customerId']		= dict_path(alert,'customerId')
 		data['eventtype']		= capitalize(dict_path(alert, 'source'))
 		data['eventname']		= capitalize(dict_path(alert, 'type'))
