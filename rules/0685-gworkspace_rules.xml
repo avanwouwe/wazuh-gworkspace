@@ -84,7 +84,22 @@
     <field name="gworkspace.application">^access transparency</field>
     <description>Google Workspace : access to Workspace resources by Google</description>
   </rule>
-  
+
+  <rule id="64628" level="10">
+    <if_sid>64600</if_sid>
+    <field name="gworkspace.eventname">^login success$</field>
+    <field name="gworkspace.parameters.login_type">^google_password$</field>
+    <field name="gworkspace.parameters.is_suspicious">^true$</field>
+    <description>Google Workspace : suspicious login by user $(user)</description>
+  </rule>
+
+  <rule id="64630" level="10">
+    <if_sid>64600</if_sid>
+    <field name="gworkspace.application">^mobile$</field>
+    <field name="gworkspace.eventtype">^suspicious activity$</field>
+    <description>Google Workspace : suspicious activity "$(gworkspace.eventname)" on device of user $(user)</description>
+  </rule>
+
   <rule id="64650" level="10" frequency="100" timeframe="300" ignore="600">
     <if_matched_sid>64600</if_matched_sid>
     <field name="gworkspace.application">^drive</field>
