@@ -100,6 +100,14 @@
     <description>Google Workspace : suspicious activity "$(gworkspace.eventname)" on device of user $(user)</description>
   </rule>
 
+  <rule id="64632" level="10">
+    <if_sid>64610</if_sid>
+    <field name="gworkspace.application">^login$</field>
+    <field name="gworkspace.eventtype">^account warning$|^attack warning$|^titanium change$|^email forwarding change$</field>
+    <description>Google Workspace : warning of type "$(gworkspace.eventname)" for user $(user)</description>
+  </rule>
+
+
   <rule id="64650" level="10" frequency="100" timeframe="300" ignore="600">
     <if_matched_sid>64600</if_matched_sid>
     <field name="gworkspace.application">^drive</field>
