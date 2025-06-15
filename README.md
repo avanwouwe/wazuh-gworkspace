@@ -28,7 +28,7 @@ Just follow the installation procedure several times. So:
   * /var/ossec/wodles/gworkspace-tenant-A/
   * /var/ossec/wodles/gworkspace-tenant-B/
   * etc
-* run `create_token.py`for each tenant.
+* create the respective service accounts, and place them in the `service_account_key.json` of their directories.
 * in `ossec.conf` create separate `<wodle>`entries, where the `<command>`is changed:
 ```
   <wodle name="command">
