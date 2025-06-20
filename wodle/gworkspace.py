@@ -49,7 +49,7 @@ def main():
 	state = load_state()
 
 	for application in scoped_applications:
-		earliest_time = dict_path(state, application, STR_LAST_ACTIVITY_TIME) or offset_time
+		earliest_time = dict_path(state, capitalize(application), STR_LAST_ACTIVITY_TIME) or offset_time
 
 		if application == 'alert':
 			service = get_service('alertcenter', 'v1beta1')
