@@ -164,6 +164,13 @@
     <description>Google Workspace : Many failed logins, possible credential stuffing attack</description>
   </rule>
 
+  <rule id="64655" level="0">
+    <if_sid>64600</if_sid>
+    <field name="gworkspace.application">^drive</field>
+    <field name="gworkspace.parameters.deletion_reason">^trash_auto_delete</field>
+    <description>ignore auto-delete events, they have no user and are always the result of another event that is not ignored</description>
+  </rule>
+
   <rule id="64700" level="10">
     <if_matched_sid>64600</if_matched_sid>
     <field name="gworkspace.application">^alert center</field>
