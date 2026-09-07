@@ -17,7 +17,9 @@ Wazuh wodle that integrates all Google Workspace audit events (including Drive, 
 
 ## Installation:
 * [create service account & OAuth client](/doc/install-step-1.md)
-* [install wodle](/doc/install-step-2.md)
+* install wodle:
+  * [Docker deployment](/doc/install-step-2.md)
+  * [direct install on Ubuntu](/doc/install-step-2-Ubuntu-direct.md)
 
 ## Frequently Asked Questions
 
@@ -43,3 +45,7 @@ Just follow the installation procedure several times. So:
 ```
 
 All the events include a `data.gworkspace.customerId`that identifies the Google Workspace customer. If you want a specific label you can add a `<tag>name</tag>` to the `ossec.conf`.
+
+### Why aren't my gworkspace rules triggering?
+Wazuh's `analysisd` loads *all* rule files - the stock ruleset plus everything in your custom rules directory - in a single global alphabetical order by filename, not per-directory. If any of your other custom rule files sort before the stock ruleset (e.g. old `0000_`-`0004_`-style names), rules that depend on a stock rule, directly or transitively, can silently fail to load - `0685-gworkspace_rules.xml` included. Wazuh's error log also caps the errors it reports per file at 50 (`ERRORLIST_MAXSIZE`), so a file that is 100% broken can look like only a handful of rules failed. If your gworkspace alerts are not showing up, check `/var/ossec/logs/ossec.log` for rule-loading warnings after a restart, and if needed rename your custom rule files (e.g. with a `9999_` prefix) so they sort after the entire stock ruleset.
+
